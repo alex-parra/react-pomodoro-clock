@@ -3,59 +3,10 @@ import ReactDOM from "react-dom";
 
 import "./styles.scss";
 
-const Timer = ({ secondsRemaining, timerId }) => {
-  const minutes = parseInt(secondsRemaining / 60);
-  const seconds =
-    secondsRemaining >= 60 ? secondsRemaining % 60 : secondsRemaining;
-  const mm = String(minutes).padStart(2, "0");
-  const ss = String(seconds).padStart(2, "0");
-
-  return (
-    <div className="timer">
-      <label id="timer-label">{timerId}</label>
-      <div id="time-left">{[mm, ss].join(":")}</div>
-    </div>
-  );
-};
-
-const OnOff = ({ status, onClick }) => {
-  return (
-    <button id="start_stop" onClick={onClick}>
-      {status ? "Stop" : "Start"}
-    </button>
-  );
-};
-
-const Reset = ({ onClick }) => {
-  return (
-    <button id="reset" onClick={ev => onClick()}>
-      Reset
-    </button>
-  );
-};
-
-const TimeSetting = props => {
-  const { id, label, value, onChange } = props;
-  return (
-    <div className="timeSetting">
-      <label id={`${id}-label`}>{label}</label>
-      <div>
-        <button id={`${id}-decrement`} onClick={ev => onChange(value - 1)}>
-          -
-        </button>
-        <input
-          type="number"
-          id={`${id}-length`}
-          value={value}
-          onChange={({ target }) => onChange(target.value)}
-        />
-        <button id={`${id}-increment`} onClick={ev => onChange(value + 1)}>
-          +
-        </button>
-      </div>
-    </div>
-  );
-};
+import { Timer } from "./components/Timer";
+import { OnOff } from "./components/OnOff";
+import { Reset } from "./components/Reset";
+import { TimeSetting } from "./components/TimeSetting";
 
 const defaultState = {
   sessionLength: 25 * 60,
@@ -111,14 +62,20 @@ class App extends React.Component {
     });
   };
 
+  keyDownHandler = ev => {
+    if (ev.key === " ") this.setTimerStatus();
+  };
+
   componentDidMount() {
-    document.addEventListener("keypress", ev => {
-      if (ev.key === " ") this.setTimerStatus();
-    });
+    document.addEventListener("keydown", this.keyDownHandler);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keydown", this.keyDownHandler);
   }
 
   componentDidUpdate() {
-    const { timerOn, secondsRemaining } = this.state;
+    const { timerOn } = this.state;
     if (!timerOn) return;
 
     setTimeout(() => {
@@ -149,7 +106,6 @@ class App extends React.Component {
       sessionLength,
       breakLength,
       secondsRemaining,
-      timerOn,
       timerId
     } = this.state;
 
@@ -166,13 +122,13 @@ class App extends React.Component {
         <div className="timeSetters">
           <TimeSetting
             id={"session"}
-            value={parseInt(sessionLength / 60)}
+            value={parseInt(sessionLength / 60, 10)}
             label={"Session Length"}
             onChange={len => this.setSession(len)}
           />
           <TimeSetting
             id={"break"}
-            value={parseInt(breakLength / 60)}
+            value={parseInt(breakLength / 60, 10)}
             label={"Break Length"}
             onChange={len => this.setBreak(len)}
           />
